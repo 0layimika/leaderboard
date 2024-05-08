@@ -1,5 +1,5 @@
 <template>
-  <div style="width:556px; margin:auto; text-align: center; font: bold;">
+  <div style="width:605px; margin:auto; text-align: center; font: bold;">
     <ag-grid-vue :rowData="rowData" :columnDefs="colDefs" style="height:600px" class="ag-theme-quartz"
       :rowheight="rowheight">
     </ag-grid-vue>
@@ -41,9 +41,9 @@ export default {
   setup() {
     const rowData = ref([]);
     const colDefs = ref([
-      { field: "Pos", headerName: "Pos", width: "60", cellStyle: { 'font-size': '12px' } },
-      { field: "name", headerName: "Player", width: "80", cellStyle: { 'font-size': '12px' } },
-      { field: "hcp", headerName: "HCP", width: "60", cellStyle: { 'font-size': '12px' } },
+      { field: "Pos", headerName: "Pos", width: "52", cellStyle: { 'font-size': '12px' } },
+      { field: "name", headerName: "Player", width: "77", cellStyle: { 'font-size': '12px' } },
+      { field: "hcp", headerName: "HCP", width: "56", cellStyle: { 'font-size': '12px' } },
       {
         headerName: "State", field: "state", width: "60", cellRenderer: StateComponentVue,
         cellRendererParams : (params) => ({
@@ -52,7 +52,7 @@ export default {
         cellStyle : {'font-size':'12px'}
       },
       {
-        headerName: "Date", field: "date", width:"70", cellStyle: { 'font-size': '12px' },
+        headerName: "Date", field: "date", width:"69", cellStyle: { 'font-size': '12px' },
         cellRenderer: DateComponentVue,
         cellRendererParams : (params) => ({
           player: params.data
@@ -60,7 +60,7 @@ export default {
       },
       {
         field: "challengers",
-        headerName: "Possible Challengers", width:"180",        
+        headerName: "Possible Challengers", width:"250",        
         cellRenderer: ChallengerComponentVue, cellStyle: { 'font-size': '12px' },
         cellRendererParams: (params) => ({
           player: params.data,
@@ -70,7 +70,7 @@ export default {
       {
         headerName: "",
         field: "action",
-        width: "43",
+        width: "38",
         cellRenderer: ButtonComponentVue,
         cellRendererParams: (params) => ({ showChallengers: () => showChallengers(params.rowIndex),
           player: params.data
