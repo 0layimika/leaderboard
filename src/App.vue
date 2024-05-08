@@ -1,5 +1,5 @@
 <template>
-  <div style="width:550px; margin:auto; text-align: center; font: bold;">
+  <div style="width:556px; margin:auto; text-align: center; font: bold;">
     <ag-grid-vue :rowData="rowData" :columnDefs="colDefs" style="height:600px" class="ag-theme-quartz"
       :rowheight="rowheight">
     </ag-grid-vue>
@@ -11,7 +11,7 @@
       <li v-for="(opp, index) in opps" :key="index" style="padding: 8px 0;">
         <label style="cursor: pointer;">
           <input type="radio" v-model="selectedOpponent" :value="opp" @change="selectOpponent">
-          <span style="color: black; font-weight: bold;">{{ opp }}</span>
+          <span style="color: black; font-weight: bold;">{{ opp.name }}</span>
         </label>
       </li>
     </ul>
@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridVue } from "ag-grid-vue3";
@@ -30,6 +30,7 @@ import 'element-plus/dist/index.css'
 import { ElDialog } from "element-plus"
 import StateComponentVue from './components/StateComponent.vue'
 import DateComponentVue from  './components/DateComponent.vue'
+import ChallengerComponentVue from './components/ChallengerComponent.vue'
 
 export default {
   name: "App",
@@ -51,7 +52,7 @@ export default {
         cellStyle : {'font-size':'12px'}
       },
       {
-        headerName: "Date", field: "date", width:"64", cellStyle: { 'font-size': '12px' },
+        headerName: "Date", field: "date", width:"70", cellStyle: { 'font-size': '12px' },
         cellRenderer: DateComponentVue,
         cellRendererParams : (params) => ({
           player: params.data
@@ -60,11 +61,11 @@ export default {
       {
         field: "challengers",
         headerName: "Possible Challengers", width:"180",        
-        cellRenderer: (params) => {
-          const challengers = params.value;
-          const inGame = params.data.inGame;
-          return challengers.map(challenger => `<span style="margin-right: 5px; border: 2px;">${inGame ? 'VS ' + challenger : challenger}</span>`).join('');
-        }, cellStyle: { 'font-size': '12px' } 
+        cellRenderer: ChallengerComponentVue, cellStyle: { 'font-size': '12px' },
+        cellRendererParams: (params) => ({
+          player: params.data,
+          challenger: params.value
+        })
       },
       {
         headerName: "",
@@ -82,38 +83,7 @@ export default {
     const showPopover = ref(false),
     selectedOpponent = ref(null)
     const challenger = ref(null)
-
-    function showChallengers(rowIndex) {
-      opps.value = rowData.value[rowIndex].challengers;
-      challenger.value = rowData.value[rowIndex].name
-      showPopover.value = true;
-    }
-
-    async function selectOpponent () {
-      if(this.selectedOpponent) {
-        try{
-          const response = await fetch(`http://127.0.0.1:5000/api/challenge/${challenger.value}`,{
-            method:'POST',
-            headers :{
-              'Content-type' : 'application/json'
-            },
-            body: JSON.stringify({challenged: this.selectedOpponent})
-          })
-          if (response.ok) {
-            console.log("Challenge set Successfully");
-            window.location.reload()
-          } else {
-            console.error("Failed to set Challenged", response.statusText)
-          }
-
-        }catch(err){
-          console.error("Error:", err)
-        }
-        this.showPopover = false;
-      }
-    }
-
-    onMounted(async () => {
+    async function fetchPlayerData() {
       try {
         const response = await fetch('http://127.0.0.1:5000/api/players');
         const data = await response.json();
@@ -128,7 +98,40 @@ export default {
       } catch (err) {
         console.error("error fetching data: ", err);
       }
-    });
+    }
+    
+    function showChallengers(rowIndex) {
+      opps.value = rowData.value[rowIndex].challengers;
+      challenger.value = rowData.value[rowIndex].name
+      showPopover.value = true;
+    }
+
+    async function selectOpponent () {
+      if(this.selectedOpponent) {
+        try{
+          const response = await fetch(`http://127.0.0.1:5000/api/challenge/${challenger.value}`,{
+            method:'POST',
+            headers :{
+              'Content-type' : 'application/json'
+            },
+            body: JSON.stringify({challenged: this.selectedOpponent.name})
+          })
+          if (response.ok) {
+            console.log("Challenge set Successfully");
+            await fetchPlayerData();
+            window.location.reload()
+          } else {
+            console.error("Failed to set Challenged", response.statusText)
+          }
+
+        }catch(err){
+          console.error("Error:", err)
+        }
+        this.showPopover = false;
+      }
+    }
+
+     fetchPlayerData(); 
 
     return {
       rowData,
